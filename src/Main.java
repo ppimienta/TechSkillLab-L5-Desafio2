@@ -21,49 +21,78 @@ public class Main {
         Comparator<Empleado> porNombre = Comparator.comparing(Empleado::getNombre);
 
         //To-do: Generar un mapa que me permita tener como clave los departamentos y como valor el total de empleados por departamento
-        Function<List<Empleado>, Map<String, Integer>> deptCount = list -> {
+        /*Function<List<Empleado>, Map<String, Integer>> deptCount = list -> {
             Map<String, Integer> map = new HashMap<>();
             for (Empleado e : list) {
                 map.merge(e.getDepartamento(), 1, Integer::sum);
             }
             return map;
-        };
+        };*/
+        Function<List<Empleado>, Map<String, Integer>> deptCount = list ->
+                list.stream()
+                        .collect(Collectors.groupingBy(
+                                Empleado::getDepartamento,
+                                Collectors.collectingAndThen(
+                                        Collectors.counting(),
+                                        Long::intValue
+                                )
+                        ));
 
         //To-do: Mostrar empleados por un consumer: Contratados en determinado mes
-        Consumer<Empleado> showIfJanuary = e -> {
+        /*Consumer<Empleado> showIfJanuary = e -> {
             if (e.getFechaIng().getMonth() == Month.JANUARY) {
                 System.out.println(e);
             }
-        };
+        };*/
+
+        //Consumer<Empleado> show = System.out::println;
+
+        Consumer<List<Empleado>> showIfJanuary = emp -> emp
+                .stream()
+                        .filter(empleado -> empleado.getFechaIng().getMonth() == Month.JANUARY)
+                                .forEach(System.out::println);
+
+
 
 
         //Uso de las funciones
         //1. Predicate - Sin stream
         System.out.println("Predicate result");
         List<Empleado> itEmployees = new ArrayList<>();
+        /*
         for (Empleado e : empleados) {
             if (itDept.test(e)) {
                 itEmployees.add(e);
             }
-        }
-        System.out.println(itEmployees);
+        }*/
 
+
+        //Con stream
+        empleados.stream().filter(itDept).forEach(itEmployees::add);
+
+        System.out.println(itEmployees);
         //2. Comparator - Sin stream
         System.out.println("Comparator result");
-        List<Empleado> orderEmpleados = new ArrayList<>(List.copyOf(empleados));
-        orderEmpleados.sort(porNombre);
+        //List<Empleado> orderEmpleados = new ArrayList<>(List.copyOf(empleados));
+        //orderEmpleados.sort(porNombre);
+
+        List<Empleado> orderEmpleados = empleados.stream()
+                .sorted(porNombre)
+                .toList();
+
         System.out.println(orderEmpleados);
 
         //3. Function - Sin stream
         System.out.println("Function result");
         Map<String, Integer> totalPorDept = deptCount.apply(empleados);
+        System.out.println(totalPorDept);
 
         //4. Consumer - Sin stream
         System.out.println("Consumer result");
-        for (Empleado e : empleados) {
+        /*for (Empleado e : empleados) {
             showIfJanuary.accept(e);
-        }
-
+        }*/
+        showIfJanuary.accept(empleados);
     }
 
     public static void loadEmpleados(List<Empleado> empleadoList){
